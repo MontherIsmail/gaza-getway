@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserType {
+  citizen
+  goverment_institution
+  goverment_employees
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model User {
+  id                Int              @id @default(autoincrement())
+  email             String           @unique
+  type              UserType         @default(citizen)
+  password          String
+  fullName          String           @map("full-name") @default("Unnamed")
+  idNumber          String           @map("id-number") @unique
+  phoneNumber       String           @map("phone-number") @default("0000000000")
+  isVerified        Boolean          @map("is-verified") @default(false)
+  userName          String?          @map("user-name")
+  bio               String?
+  profilePic        String?          @map("profile-pic")
+  status            UserStatus       @default(ACTIVE)
+  phoneVerifiedCode Int?            @map("phone-verified-code")
+  phoneVerifiedCc   DateTime?        @map("phone-verified-cc")
+  phoneVerifiedAt   DateTime?        @map("phone-verified-at")
+
+  resetPasswords    ResetPassword[]
+
+  @@map("users")
+}
+
+model ResetPassword {
+  id         BigInt     @id @default(autoincrement())
+  userId     String     @map("user-id")
+  code       Int
+  expiredAt  DateTime   @map("expiered-at")
+  userToken  String     @map("user-token")
+  type       String
+
+  user       User       @relation(fields: [userId], references: [idNumber])
+
+  @@map("reset-password")
+}
